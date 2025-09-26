@@ -4,14 +4,16 @@ A sleek, zero-interaction bash script that installs Docker and Docker Compose on
 
 ## Installation
 
+Get the latest release: https://github.com/Entys/Docker-Install_Solution/releases
+
 ```bash
-curl -sSL https://github.com/Entys/Docker-Install_Solution/releases/download/v1.0/docker_install.sh | sudo bash
+curl -sSL https://github.com/Entys/Docker-Install_Solution/releases/download/v1.1/docker_install.sh | sudo bash
 ```
 
 Or manually:
 
 ```bash
-wget https://github.com/Entys/Docker-Install_Solution/releases/download/v1.0/docker_install.sh
+wget https://github.com/Entys/Docker-Install_Solution/releases/download/v1.1/docker_install.sh
 chmod +x docker_install.sh
 sudo ./docker_install.sh
 ```
