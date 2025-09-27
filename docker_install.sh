@@ -267,12 +267,11 @@ install_docker() {
         ubuntu|debian)
             apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
-        centos|rhel|fedora)
-            if [[ $DISTRO == "fedora" ]]; then
-                dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
-            else
-                yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
-            fi
+        centos|fedora)
+            dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
+            ;;
+        rhel)
+            yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
         arch)
             pacman -S --noconfirm docker docker-compose >> "$LOG_FILE" 2>&1
@@ -290,12 +289,11 @@ install_docker_compose() {
             ubuntu|debian)
                 apt-get install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
                 ;;
-            centos|rhel|fedora)
-                if [[ $DISTRO == "fedora" ]]; then
-                    dnf install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
-                else
-                    yum install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
-                fi
+            centos|fedora)
+                dnf install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
+                ;;
+            rhel)
+                yum install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
                 ;;
         esac
         
