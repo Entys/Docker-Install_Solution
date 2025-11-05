@@ -154,7 +154,7 @@ check_existing_docker() {
         echo ""
         
         while true; do
-            read -p "Choose an option [1-2]: " choice
+            read -p "Choose an option [1-2]: " choice < /dev/tty
             case $choice in
                 1)
                     show_info "Proceeding with installation..."
