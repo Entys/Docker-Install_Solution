@@ -89,6 +89,91 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
 }
 
+# Ajouter après la fonction log()
+
+show_tools_menu() {
+    clear_screen
+    echo -e "${CYAN}${BOLD}"
+    echo "╔═══════════════════════════════════════════════════════════════════════════════╗"
+    echo "║                                                                               ║"
+    echo "║                           DOCKER SOLUTION INSTALLER                           ║"
+    echo "║                                                                               ║"
+    echo "╚═══════════════════════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
+    echo ""
+    echo -e "${WHITE}${BOLD}Select a category:${NC}"
+    echo ""
+    echo -e "${CYAN}  [1]${NC} Tools (Management & Development)"
+    echo -e "${CYAN}  [2]${NC} Databases (Coming soon)"
+    echo -e "${CYAN}  [3]${NC} Monitoring (Coming soon)"
+    echo -e "${CYAN}  [0]${NC} Exit"
+    echo ""
+    
+    while true; do
+        read -p "Choose an option [0-3]: " choice < /dev/tty
+        case $choice in
+            1)
+                show_tools_category
+                ;;
+            2)
+                show_info "Databases category coming soon"
+                sleep 2
+                show_tools_menu
+                ;;
+            3)
+                show_info "Monitoring category coming soon"
+                sleep 2
+                show_tools_menu
+                ;;
+            0)
+                show_info "Exiting..."
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}Invalid choice. Please enter 0-3.${NC}"
+                ;;
+        esac
+    done
+}
+
+show_tools_category() {
+    clear_screen
+    echo -e "${CYAN}${BOLD}"
+    echo "╔═══════════════════════════════════════════════════════════════════════════════╗"
+    echo "║                                                                               ║"
+    echo "║                              TOOLS CATEGORY                                   ║"
+    echo "║                                                                               ║"
+    echo "╚═══════════════════════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
+    echo ""
+    echo -e "${WHITE}${BOLD}Available tools:${NC}"
+    echo ""
+    echo -e "${CYAN}  [1]${NC} Portainer - Docker management UI"
+    echo -e "${CYAN}  [0]${NC} Back to main menu"
+    echo ""
+    
+    while true; do
+        read -p "Choose an option [0-1]: " choice < /dev/tty
+        case $choice in
+            1)
+                install_portainer
+                ;;
+            0)
+                show_tools_menu
+                ;;
+            *)
+                echo -e "${RED}Invalid choice. Please enter 0-1.${NC}"
+                ;;
+        esac
+    done
+}
+
+install_portainer() {
+    show_info "Portainer installation coming soon..."
+    sleep 2
+    show_tools_category
+}
+
 detect_distro() {
     show_info "Detecting Linux distribution..."
     
@@ -146,26 +231,31 @@ check_existing_docker() {
     
     if $docker_installed && $compose_installed && $docker_running; then
         echo ""
-        show_info "Docker appear to be fully installed and running"
+        show_info "Docker appears to be fully installed and running"
         echo ""
-        echo -e "${YELLOW}Options:${NC}"
-        echo -e "${CYAN}  [1]${NC} Continue anyway (reinstall/update)"
-        echo -e "${CYAN}  [2]${NC} Exit"
+        echo -e "${YELLOW}What would you like to do?${NC}"
+        echo ""
+        echo -e "${CYAN}  [1]${NC} Reinstall/Update Docker"
+        echo -e "${CYAN}  [2]${NC} Install Docker Tools-Solution"
+        echo -e "${CYAN}  [3]${NC} Exit"
         echo ""
         
         while true; do
-            read -p "Choose an option [1-2]: " choice < /dev/tty
+            read -p "Choose an option [1-3]: " choice < /dev/tty
             case $choice in
                 1)
-                    show_info "Proceeding with installation..."
+                    show_info "Proceeding with Docker installation..."
                     return 0
                     ;;
                 2)
+                    show_tools_menu
+                    ;;
+                3)
                     show_info "Exiting..."
                     exit 0
                     ;;
                 *)
-                    echo -e "${RED}Nop. Please enter 1 or 2.${NC}"
+                    echo -e "${RED}Invalid choice. Please enter 1-3.${NC}"
                     ;;
             esac
         done
