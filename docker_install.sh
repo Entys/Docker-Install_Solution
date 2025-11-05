@@ -185,10 +185,10 @@ update_system() {
             apt-get update -y >> "$LOG_FILE" 2>&1
             apt-get upgrade -y >> "$LOG_FILE" 2>&1
             ;;
-        centos|rhel)
+        rhel)
             yum update -y >> "$LOG_FILE" 2>&1
             ;;
-        fedora)
+        centos|fedora)
             dnf update -y >> "$LOG_FILE" 2>&1
             ;;
         arch)
@@ -203,7 +203,7 @@ install_dependencies() {
     show_info "Installing dependencies..."
     
     case $DISTRO in
-        ubuntu|debian)
+        ubuntu)
             apt-get install -y \
                 apt-transport-https \
                 ca-certificates \
@@ -212,14 +212,21 @@ install_dependencies() {
                 lsb-release \
                 software-properties-common >> "$LOG_FILE" 2>&1
             ;;
-        centos|rhel)
+        debian)
+            apt-get install -y \
+                    apt-transport-https \
+                    ca-certificates \
+                    curl \
+                    gnupg \
+                    lsb-release >> "$LOG_FILE" 2>&1
+        rhel)
             yum install -y \
                 yum-utils \
                 device-mapper-persistent-data \
                 lvm2 \
                 curl >> "$LOG_FILE" 2>&1
             ;;
-        fedora)
+        centos|fedora)
             dnf install -y \
                 dnf-plugins-core \
                 curl >> "$LOG_FILE" 2>&1
@@ -239,15 +246,21 @@ add_docker_repo() {
     
     case $DISTRO in
         ubuntu|debian)
+            # Primarily for Debian 13
+            rm -f /etc/apt/sources.list.d/docker.list
+
             curl -fsSL https://download.docker.com/linux/$DISTRO/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$DISTRO $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
             apt-get update >> "$LOG_FILE" 2>&1
             ;;
-        centos|rhel)
+        rhel)
             yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo >> "$LOG_FILE" 2>&1
             ;;
         fedora)
             dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo >> "$LOG_FILE" 2>&1
+            ;;
+        centos)
+            dnf-3 config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo >> "$LOG_FILE" 2>&1
             ;;
         arch)
             # TODO
@@ -264,16 +277,15 @@ install_docker() {
         ubuntu|debian)
             apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
-        centos|rhel|fedora)
-            if [[ $DISTRO == "fedora" ]]; then
-                dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
-            else
-                yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
-            fi
+        centos|fedora)
+            dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
-        arch)
-            pacman -S --noconfirm docker docker-compose >> "$LOG_FILE" 2>&1
+        rhel)
+            yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
+        #arch)
+        #    pacman -S --noconfirm docker docker-compose >> "$LOG_FILE" 2>&1
+        #    ;;
     esac
     
     show_success "Docker Engine installed"
@@ -287,12 +299,11 @@ install_docker_compose() {
             ubuntu|debian)
                 apt-get install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
                 ;;
-            centos|rhel|fedora)
-                if [[ $DISTRO == "fedora" ]]; then
-                    dnf install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
-                else
-                    yum install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
-                fi
+            centos|fedora)
+                dnf install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
+                ;;
+            rhel)
+                yum install -y docker-compose-plugin >> "$LOG_FILE" 2>&1
                 ;;
         esac
         
