@@ -219,6 +219,7 @@ install_dependencies() {
                     curl \
                     gnupg \
                     lsb-release >> "$LOG_FILE" 2>&1
+            ;;
         rhel)
             yum install -y \
                 yum-utils \
