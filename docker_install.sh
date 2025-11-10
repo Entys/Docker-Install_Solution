@@ -367,16 +367,37 @@ install_docker() {
     case $DISTRO in
         ubuntu|debian)
             apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
+            
+            # Fix containerd.io 1.7.28-2 bug
+            if dpkg -l | grep containerd.io | grep -q "1.7.28-2"; then
+                show_info "Fixing containerd.io version (1.7.28-2 has known bugs)..."
+                
+                local version_suffix
+                if [[ "$VERSION" == "13" ]]; then
+                    version_suffix="debian.13~trixie"
+                elif [[ "$VERSION" == "12" ]]; then
+                    version_suffix="debian.12~bookworm"
+                elif [[ "$DISTRO" == "ubuntu" ]]; then
+                    version_suffix="ubuntu.$(lsb_release -rs)~$(lsb_release -cs)"
+                fi
+                
+                apt-get install -y --allow-downgrades \
+                    containerd.io=1.7.28-1~${version_suffix} >> "$LOG_FILE" 2>&1
+                apt-mark hold containerd.io >> "$LOG_FILE" 2>&1
+                show_success "containerd.io downgraded to 1.7.28-1"
+            fi
             ;;
         centos|fedora)
             dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
+            
+            if rpm -qa | grep containerd.io | grep -q "1.7.28-2"; then
+                show_info "Fixing containerd.io version..."
+                dnf downgrade -y containerd.io-1.7.28-1 >> "$LOG_FILE" 2>&1
+            fi
             ;;
         rhel)
             yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
-        #arch)
-        #    pacman -S --noconfirm docker docker-compose >> "$LOG_FILE" 2>&1
-        #    ;;
     esac
     
     show_success "Docker Engine installed"
