@@ -176,7 +176,19 @@ show_tools_category() {
 }
 
 install_portainer() {
-    show_info "Portainer installation coming soon..."
+    local portainer_script_url="https://github.com/Entys/Docker-Install_Solution/releases/download/v1.1/tools/portainer/portainer_dc.sh"
+    
+    show_info "Downloading Portainer installation script..."
+    log "Downloading from: $portainer_script_url"
+    
+    if curl -sSL "$portainer_script_url" | bash; then
+        show_success "Portainer installation completed successfully"
+        log "Portainer installation successful"
+    else
+        show_error "Portainer installation failed"
+        log "ERROR: Portainer installation script failed"
+    fi
+    
     sleep 2
     show_tools_category
 }
