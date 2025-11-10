@@ -176,7 +176,7 @@ show_tools_category() {
 }
 
 install_portainer() {
-    local portainer_script_url="https://raw.githubusercontent.com/Entys/Docker-Install_Solution/dev/tools/portainer/portainer_dc.sh"
+    local portainer_script_url="https://raw.githubusercontent.com/Entys/Docker-Install_Solution/dev/tools/portainer_dc.sh"
     
     show_info "Downloading Portainer installation script..."
     log "Downloading from: $portainer_script_url"
