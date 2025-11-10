@@ -22,6 +22,7 @@ clear_screen() {
 
 DOCKER_COMPOSE_VERSION="2.24.0"
 LOG_FILE="/tmp/docker_install.log"
+IS_PROXMOX_LXC=false
 
 show_banner() {
     clear_screen
@@ -89,7 +90,13 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
 }
 
-# Ajouter après la fonction log()
+detect_proxmox_lxc() {
+    # Detect if running in Proxmox LXC
+    if [[ -f /sys/module/apparmor/parameters/enabled ]] && [[ -d /sys/fs/cgroup ]]; then
+        IS_PROXMOX_LXC=true
+        log "Proxmox LXC environment detected"
+    fi
+}
 
 show_tools_menu() {
     clear_screen
@@ -193,6 +200,9 @@ detect_distro() {
     show_success "Distribution detected: $DISTRO $VERSION"
     log "Distribution detected: $DISTRO $VERSION"
     sleep 1
+    
+    # Detect Proxmox LXC environment
+    detect_proxmox_lxc
 }
 
 check_root() {
@@ -281,9 +291,6 @@ update_system() {
         centos|fedora)
             dnf update -y >> "$LOG_FILE" 2>&1
             ;;
-        arch)
-            pacman -Syu --noconfirm >> "$LOG_FILE" 2>&1
-            ;;
     esac
     
     show_success "System updated"
@@ -322,11 +329,6 @@ install_dependencies() {
                 dnf-plugins-core \
                 curl >> "$LOG_FILE" 2>&1
             ;;
-        arch)
-            pacman -S --noconfirm \
-                curl \
-                ca-certificates >> "$LOG_FILE" 2>&1
-            ;;
     esac
     
     show_success "Dependencies installed"
@@ -353,9 +355,6 @@ add_docker_repo() {
         centos)
             dnf-3 config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo >> "$LOG_FILE" 2>&1
             ;;
-        arch)
-            # TODO
-            ;;
     esac
     
     show_success "Docker repository added"
@@ -374,9 +373,6 @@ install_docker() {
         rhel)
             yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin >> "$LOG_FILE" 2>&1
             ;;
-        #arch)
-        #    pacman -S --noconfirm docker docker-compose >> "$LOG_FILE" 2>&1
-        #    ;;
     esac
     
     show_success "Docker Engine installed"
@@ -455,12 +451,36 @@ test_installation() {
     fi
     
     show_info "Testing with hello-world container..."
-    if docker run --rm hello-world >> "$LOG_FILE" 2>&1; then
+    local test_output
+    test_output=$(docker run --rm hello-world 2>&1)
+    
+    if echo "$test_output" | grep -q "Hello from Docker!"; then
         show_success "Hello-world test successful!"
-    else
-        show_error "Hello-world test failed"
+        return 0
+    fi
+    
+    # Check if it's an AppArmor permission issue in Proxmox LXC
+    if [[ $IS_PROXMOX_LXC == true ]] && echo "$test_output" | grep -q "permission denied"; then
+        show_error "⚠️  AppArmor is too restrictive in this Proxmox LXC"
+        echo ""
+        show_info "To fix this, on the Proxmox host, edit the LXC config:"
+        echo -e "${YELLOW}/etc/pve/lxc/CONTAINER_ID.conf${NC}"
+        echo ""
+        show_info "Change this line:"
+        echo -e "${YELLOW}lxc.apparmor.profile = generated${NC}"
+        echo ""
+        show_info "To this:"
+        echo -e "${YELLOW}lxc.apparmor.profile = unconfined${NC}"
+        echo ""
+        show_info "Then restart this container"
+        echo ""
+        log "AppArmor too restrictive - requires Proxmox host configuration change"
         return 1
     fi
+    
+    # Other error
+    show_error "Hello-world test failed"
+    return 1
 }
 
 show_final_summary() {
@@ -492,6 +512,9 @@ show_final_summary() {
     if [[ -n $SUDO_USER ]]; then
         echo -e "${YELLOW}  Log out and back in to use Docker without sudo${NC}"
         echo -e "${YELLOW}  Or run: newgrp docker${NC}"
+    fi
+    if [[ $IS_PROXMOX_LXC == true ]]; then
+        echo -e "${YELLOW}  Running in Proxmox LXC - AppArmor may need configuration${NC}"
     fi
     echo ""
     echo -e "${BLUE}Complete log: $LOG_FILE${NC}"
