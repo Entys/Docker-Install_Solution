@@ -176,20 +176,31 @@ show_tools_category() {
 }
 
 install_portainer() {
-    local portainer_script_url="https://raw.githubusercontent.com/Entys/Docker-Install_Solution/dev/docker_install.sh"
+    local portainer_script_url="https://raw.githubusercontent.com/Entys/Docker-Install_Solution/dev/tools/portainer/portainer_dc.sh"
     
     show_info "Downloading Portainer installation script..."
     log "Downloading from: $portainer_script_url"
     
-    if curl -sSL "$portainer_script_url" | bash; then
-        show_success "Portainer installation completed successfully"
+    echo ""
+    echo "============================================================"
+    echo ""
+    
+    bash <(curl -sSL "$portainer_script_url")
+    local install_status=$?
+    
+    echo ""
+    echo "============================================================"
+    echo ""
+    
+    if [[ $install_status -eq 0 ]]; then
         log "Portainer installation successful"
     else
-        show_error "Portainer installation failed"
-        log "ERROR: Portainer installation script failed"
+        show_error "Portainer installation failed with exit code $install_status"
+        log "ERROR: Portainer installation script failed with code $install_status"
     fi
     
-    sleep 2
+    echo ""
+    read -p "Press Enter to return to menu..." < /dev/tty
     show_tools_category
 }
 
